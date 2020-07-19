@@ -32,7 +32,7 @@ class Main extends PluginBase{
 			"defaultTime" => 600,
 			"defaultKT" => 20,
 		]);
-		$this->maps = new Config($this->getDataFolder() . "map.yml", Config::YAML);
+		$this->maps = new Config($this->getDataFolder() . "maps.yml", Config::YAML);
 
 		$this->getServer()->getCommandMap()->register("OneShot", new GameCommand("game", $this));
 
