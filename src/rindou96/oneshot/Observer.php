@@ -11,7 +11,9 @@ use rindou96\oneshot\Main;
 
 class Observer{
 
+	/** @var Main */
 	private $owner;
+	/** @var Server */
 	private $server;
 
 	public function __construct(Player $player, Main $owner){
