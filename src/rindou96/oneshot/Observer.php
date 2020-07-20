@@ -16,13 +16,22 @@ class Observer{
 	/** @var Server */
 	private $server;
 
+	/** @var Player */
+	public $player;
+	/** @var string */
+	public $name;
+	/** @var bool */
+	public $alive;
+	/** @var killCount */
+	public $killCount;
+
 	public function __construct(Player $player, Main $owner){
 		$this->owner = $owner;
 		$this->server = $owner->getServer();
 		$this->player = $player;
 		$this->name = $player->getName();
-		$this->kt = 0;
-		$this->tasks = [];
+		$this->alive = false;
+		$this->killCount = 0;
 	}
 
 	public function getOwner() : Main{
@@ -31,5 +40,13 @@ class Observer{
 
 	public function getServer() : Server{
 		return $this->server;
+	}
+
+	public function isAlive() : bool{
+		return $this->alive;
+	}
+
+	public function setAlive(bool $isAlive) : void{
+		$this->alive = $isAlive;
 	}
 }

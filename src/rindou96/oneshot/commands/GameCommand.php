@@ -17,8 +17,8 @@ use pocketmine\network\mcpe\protocol\types\CommandEnum;
 use pocketmine\network\mcpe\protocol\types\CommandParameter;
 use pocketmine\utils\TextFormat;
 
-use rindou96\oneshot\GameManager;
 use rindou96\oneshot\Main;
+use rindou96\oneshot\manager\GameManager;
 
 class GameCommand extends VanillaCommand{
 
@@ -40,14 +40,33 @@ class GameCommand extends VanillaCommand{
 				$sender->sendMessage("§b》 §fサブコマンドを入力してください");
 				return true;
 			}elseif($args[0] === "start"){
-				//TODO
+				GameManager::getInstance()->startGame();
 			}elseif($args[0] === "reset"){
-				//TODO
+				GameManager::getInstance()->resetGame();
+				$sender->sendMessage("§b》 §fシステムを初期化しました");
+			}elseif($args[0] === "tpa"){
+				if($sender instanceof Player){
+					if(!isset($args[1])){
+						foreach($this->getServer()->getOnlinePlayers() as $player){
+							$player->teleport($sender);
+						}
+						$sender->sendMessage("§b》 一斉TPしました");
+					}else{
+						$p = $this->getServer()->getPlayer($args[1]);
+						if($p !== null){
+							$n = $p->getName();
+							foreach($this->getServer()->getOnlinePlayers() as $player){
+								$player->teleport($p);
+							}
+							$sender->sendMessage("§b》 §6{$n}§fに一斉TPしました");
+						}else $sender->sendMessage("§c》 §fプレイヤーが見つかりませんでした");
+					}
+				}else $sender->sendMessage("§c》 §fこのコマンドはゲーム内で実行してください");
 			}elseif($args[0] === "time"){
 				if(!isset($args[1])){
 					$sender->sendMessage("§b》 §f時間を指定してください");
 				}else{
-					$this->getOwner()->config->set("defaultTime", (int) $args[1]);
+					GameManager::getInstance()->setTime((int) $args[1]);
 					$sender->sendMessage("§b》 §f時間を設定しました");
 				}
 			}

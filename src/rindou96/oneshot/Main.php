@@ -12,31 +12,26 @@ use pocketmine\utils\Config;
 use rindou96\oneshot\Observer;
 use rindou96\oneshot\commands\GameCommand;
 use rindou96\oneshot\entity\Arrow;
+use rindou96\oneshot\manager\GameManager;
 
 class Main extends PluginBase{
 
-	public $observer = [];
 	public static $plugin;
+
+	public $observer = [];
+	public $gameManager;
 
 	public function onEnable(){
 		self::$plugin = $this;
 
 		$this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
-		if(!file_exists($this->getDataFolder())){
-			mkdir($this->getDataFolder(), 0744, true);
-		}
-
-		$this->config = new Config($this->getDataFolder() . "config.yml", Config::YAML, [
-			"configVersion" => VersionInfo::CONFIG_VERSION,
-			"defaultTime" => 600,
-			"defaultKT" => 20,
-		]);
-		$this->maps = new Config($this->getDataFolder() . "maps.yml", Config::YAML);
-
 		$this->getServer()->getCommandMap()->register("OneShot", new GameCommand("game", $this));
 
 		Entity::registerEntity(Arrow::class, false , ['Arrow']);
+
+		/** GameManager */
+		$this->gameManager = new GameManager($this);
 		
 		$this->getLogger()->info("§aTheOneShotを読み込みました");
 	}
