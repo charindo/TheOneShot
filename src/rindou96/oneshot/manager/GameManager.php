@@ -6,9 +6,13 @@ namespace rindou96\oneshot\manager;
 
 use pocketmine\Player;
 use pocketmine\Server;
+use pocketmine\entity\Effect;
+use pocketmine\entity\EffectInstance;
+use pocketmine\level\Position;
 use pocketmine\item\Item;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\EnchantmentInstance;
+use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\{CompoundTag, StringTag};
 use pocketmine\network\mcpe\protocol\PlaySoundPacket;
 use pocketmine\network\mcpe\protocol\RemoveObjectivePacket;
@@ -179,6 +183,7 @@ class GameManager{//Managerの使い方よくわからない
 	}
 
 	public function startGame() : void{
+		if($this->timerTask !== null) $this->getOwner()->getScheduler()->cancelTask($this->timerTask->getTaskId());
 		$players = [];
 		foreach($this->getServer()->getOnlinePlayers() as $player){
 			if($player->getGamemode() !== 1 && $player->getGamemode() !== 3) $players[] = $player;
@@ -198,10 +203,16 @@ class GameManager{//Managerの使い方よくわからない
 		foreach($players as $player){
 			$player->getInventory()->setItem(0, $bow);
 			$player->getInventory()->setItem(9, $arrow);
-			$this->getOwner()->getObserver($player->getName())->setAlive(true);
+			$observer = $this->getOwner()->getObserver($player->getName());
+			if($observer !== null) $observer->setAlive(true);
+			$player->removeAllEffects();
+			$player->addEffect(new EffectInstance(Effect::getEffect(1), 2147483647, 2, false)); //SpeedEffect
+			$player->addEffect(new EffectInstance(Effect::getEffect(8), 2147483647, 1, false)); //LeapEffect
+			$player->setNameTagAlwaysVisible(false);
 		}
 		foreach($this->getServer()->getOnlinePlayers() as $player){
 			$this->playSound($player, "mob.wither.spawn", 1, 1, $player->x, $player->y, $player->z);
+			$player->setInvisible(false);
 		}
 		$this->getServer()->broadcastMessage("§b§l》 §aゲーム開始");
 		$this->setStatus(1);
@@ -226,11 +237,20 @@ class GameManager{//Managerの使い方よくわからない
 
 	public function resetGame() : void{
 		if($this->timerTask !== null) $this->getOwner()->getScheduler()->cancelTask($this->timerTask->getTaskId());
-		$this->setStatus = 0;
+		$this->setStatus(0);
 		$this->updateScoreboard();
+		$this->getServer()->unloadLevel($this->getServer()->getLevelByName("map"));
+		$this->getServer()->loadLevel("map");
+		$new_level = $this->getServer()->getLevelByName("map");
 		foreach($this->getServer()->getOnlinePlayers() as $player){
 			$player->getInventory()->clearAll();
-			if(!$player->isOp()) $player->setGamemode(2);
+			$player->setGamemode(2);
+			$player->teleport(new Position($this->getOwner()->config->get("spawnPoint")["x"], $this->getOwner()->config->get("spawnPoint")["y"], $this->getOwner()->config->get("spawnPoint")["z"], $new_level));
+			$player->removeAllEffects();
+			$player->getInventory()->clearAll();
+			$player->getEnderChestInventory()->clearAll();
+			$player->getArmorInventory()->clearAll();
+			$player->setNameTagAlwaysVisible(true);
 		}
 		$this->getOwner()->gameManager = new GameManager($this->getOwner());
 	}

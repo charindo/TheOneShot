@@ -11,6 +11,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\defaults\VanillaCommand;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\lang\TranslationContainer;
+use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\types\CommandEnum;
@@ -62,14 +63,35 @@ class GameCommand extends VanillaCommand{
 						}else $sender->sendMessage("§c》 §fプレイヤーが見つかりませんでした");
 					}
 				}else $sender->sendMessage("§c》 §fこのコマンドはゲーム内で実行してください");
+			}elseif($args[0] === "aiv"){
+				if(!isset($args[1])){
+					$sender->sendMessage("§b》 §fON / OFFを指定してください");
+				}elseif($args[1] === "on" || $args[1] === "true"){
+					foreach($this->getServer()->getOnlinePlayers() as $player){
+						if($player->getGamemode() !== 1 && $player->getGamemode() !== 3) $player->setInvisible(true);
+					}
+					$sender->sendMessage("§a》 §f設定が完了しました");
+				}elseif($args[1] === "off" || $args[1] === "false"){
+					foreach($this->getServer()->getOnlinePlayers() as $player){
+						$player->setInvisible(false);
+					}
+					$sender->sendMessage("§a》 §f設定が完了しました");
+				}else $sender->sendMessage("§c》 §f構文に間違いがあります");
+			}elseif($args[0] === "spawn"){
+				if($sender instanceof Player){
+					$this->getOwner()->config->set("spawnPoint", ["x" => $sender->x, "y" => $sender->y, "z" => $sender->z]);
+					$this->getOwner()->config->save();
+					$sender->sendMessage("§a》 §fスポーン地点を設定しました");
+				}else $sender->sendMessage("§c》 §fこのコマンドはゲーム内で実行してください");
 			}elseif($args[0] === "time"){
 				if(!isset($args[1])){
 					$sender->sendMessage("§b》 §f時間を指定してください");
 				}else{
 					GameManager::getInstance()->setTime((int) $args[1]);
+					GameManager::getInstance()->updateScoreboard();
 					$sender->sendMessage("§b》 §f時間を設定しました");
 				}
-			}
+			}else $sender->sendMessage("§c》 §fそのようなサブコマンドは存在しません");
 		}else $sender->sendMessage("§cこのコマンドを実行する権限がありません");
 	}
 
